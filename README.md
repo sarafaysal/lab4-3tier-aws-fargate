@@ -5,40 +5,12 @@ A containerized 3-tier web application (React frontend, Flask backend, MySQL dat
 This project was built as a hands-on lab covering containerization fundamentals (Docker, Dockerfiles, container networking) and their real-world deployment equivalent on AWS's serverless container platform.
 
 ---
-
-## Architecture
-Internet
-                        |
-                        v
-            +-----------------------+
-            |  Application Load      |
-            |  Balancer (public)     |
-            +-----------+-------------+
-             :80         |        :5000
-    +----------------+  |  +----------------+
-    |   frontend      |  |  |   backend       |
-    |   (Fargate,     |<-+->|   (Fargate,     |
-    |   Nginx + React)|     |   Flask API)    |
-    +----------------+     +--------+--------+
-                                      |
-                            Service Connect: "db"
-                                      v
-                             +----------------+
-                             |      db         |
-                             |  (Fargate,      |
-                             |   MySQL)        |
-                             +--------+--------+
-                                      |
-                                      v
-                             +----------------+
-                             |  Amazon EFS     |
-                             |  (persistent    |
-                             |   volume)       |
-                             +----------------+
-**Why each tier is a separate task/service, not one combined container:** this mirrors how you'd actually run production workloads — each tier scales, deploys, and fails independently. The frontend can be redeployed without touching the backend or database; the backend can scale to multiple tasks under load without duplicating the database.
-
-**Why the database is a Fargate task with an EFS volume, instead of RDS:** Fargate tasks have no persistent local disk — anything written inside a container is lost on restart. Mounting an EFS volume at MySQL's data directory (`/var/lib/mysql`) gives the database tier durable storage that survives task restarts and redeployments, while keeping the entire stack (including the database) on Fargate as required for this lab.
-
+**Request flow:**
+1. Browser → Application Load Balancer (public, port 80/5000)
+2. ALB → **frontend** task (Fargate, Nginx + React) — serves the UI
+3. Browser (client-side JS) → ALB → **backend** task (Fargate, Flask API)
+4. **backend** → **db** task (Fargate, MySQL) — resolved via Service Connect as hostname `db`
+5. **db** → Amazon EFS — persistent volume, survives task restarts
 ---
 
 ## Tech stack
@@ -59,23 +31,11 @@ Internet
 ---
 
 ## Repository structure
-.
-├── frontend/
-│ ├── Dockerfile
-│ ├── src/
-│ │ └── App.jsx
-│ └── ...
-├── backend/
-│ ├── Dockerfile
-│ ├── app.py
-│ └── ...
-├── task-definitions/
-│ ├── frontend-task-def.json
-│ ├── backend-task-def.json
-│ └── db-task-def.json
-├── screenshots/
-│ └── ... (deployment verification evidence)
-└── README.md
+- `frontend/` — Dockerfile, React source (`src/App.jsx`, etc.)
+- `backend/` — Dockerfile, `app.py`, Flask source
+- `task-definitions/` — `frontend-task-def.json`, `backend-task-def.json`, `db-task-def.json`
+- `screenshots/` — deployment verification evidence
+- `README.md`
 ---
 
 ## How it works
