@@ -1,0 +1,110 @@
+{
+    "taskDefinitionArn": "arn:aws:ecs:us-east-1:301301200060:task-definition/3tier-db:5",
+    "containerDefinitions": [
+        {
+            "name": "db",
+            "image": "301301200060.dkr.ecr.us-east-1.amazonaws.com/3tier-db:latest",
+            "cpu": 0,
+            "portMappings": [
+                {
+                    "containerPort": 3306,
+                    "hostPort": 3306,
+                    "protocol": "tcp",
+                    "name": "db"
+                }
+            ],
+            "essential": true,
+            "environment": [
+                {
+                    "name": "MYSQL_DATABASE",
+                    "value": "appdb"
+                }
+            ],
+            "mountPoints": [
+                {
+                    "sourceVolume": "db-data",
+                    "containerPath": "/var/lib/mysql"
+                }
+            ],
+            "volumesFrom": [],
+            "secrets": [
+                {
+                    "name": "MYSQL_ROOT_PASSWORD",
+                    "valueFrom": "arn:aws:secretsmanager:us-east-1:301301200060:secret:db-password"
+                }
+            ],
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "/ecs/3tier-db",
+                    "awslogs-region": "us-east-1",
+                    "awslogs-stream-prefix": "ecs"
+                }
+            },
+            "systemControls": []
+        }
+    ],
+    "family": "3tier-db",
+    "executionRoleArn": "arn:aws:iam::301301200060:role/ecsTaskExecutionRole",
+    "networkMode": "awsvpc",
+    "revision": 5,
+    "volumes": [
+        {
+            "name": "db-data",
+            "efsVolumeConfiguration": {
+                "fileSystemId": "fs-0a6b20ef4b55ba8ee",
+                "rootDirectory": "/",
+                "transitEncryption": "ENABLED"
+            }
+        }
+    ],
+    "status": "ACTIVE",
+    "requiresAttributes": [
+        {
+            "name": "com.amazonaws.ecs.capability.logging-driver.awslogs"
+        },
+        {
+            "name": "ecs.capability.execution-role-awslogs"
+        },
+        {
+            "name": "ecs.capability.efsAuth"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.ecr-auth"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.19"
+        },
+        {
+            "name": "ecs.capability.secrets.asm.environment-variables"
+        },
+        {
+            "name": "ecs.capability.efs"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.25"
+        },
+        {
+            "name": "ecs.capability.execution-role-ecr-pull"
+        },
+        {
+            "name": "com.amazonaws.ecs.capability.docker-remote-api.1.18"
+        },
+        {
+            "name": "ecs.capability.task-eni"
+        }
+    ],
+    "placementConstraints": [],
+    "compatibilities": [
+        "EC2",
+        "FARGATE",
+        "MANAGED_INSTANCES"
+    ],
+    "requiresCompatibilities": [
+        "FARGATE"
+    ],
+    "cpu": "512",
+    "memory": "1024",
+    "registeredAt": "2026-07-30T13:31:57.081000+05:00",
+    "registeredBy": "arn:aws:iam::301301200060:user/sara-admin"
+}
